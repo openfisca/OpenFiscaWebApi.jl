@@ -20,30 +20,33 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-
-module OpenFiscaWebApi
-
-
-export make_app, start
-
-include("controllers/calculate.jl")
-include("responses.jl")
-
+using Biryani
 import JSON
-import Morsel
 
 
-function make_app()
-  app = Morsel.app()
-  Morsel.post(calculate, app, "/api/1/calculate")
-  return app
+function calculate(req, res)
+  inputs = req.http_req.data
+  params = JSON.parse(inputs)
+  params_to_data = struct(
+    [
+      "variables" => pipe(
+        test_isa(Array),
+        uniform_sequence(
+          test_isa(String),
+          require,
+        ),
+        empty_to_nothing,
+        require,
+      ),
+    ],
+  )
+  data, errors = Convertible(params) |> params_to_data |> to_value_error
+  if errors !== nothing
+    return bad_request(res, errors = errors)
+  end
+
+  response_data = [
+    "value" => 999.9,
+  ]
+  return respond_json(res, data = response_data)
 end
-
-
-function start(port::Int)
-  app = make_app()
-  Morsel.start(app, port)
-end
-
-
-end # module

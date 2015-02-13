@@ -20,30 +20,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-
-module OpenFiscaWebApi
-
-
-export make_app, start
-
-include("controllers/calculate.jl")
-include("responses.jl")
-
-import JSON
-import Morsel
+import OpenFiscaWebApi
 
 
-function make_app()
-  app = Morsel.app()
-  Morsel.post(calculate, app, "/api/1/calculate")
-  return app
-end
+const port = 2500
 
 
-function start(port::Int)
-  app = make_app()
-  Morsel.start(app, port)
-end
-
-
-end # module
+OpenFiscaWebApi.start(port)
