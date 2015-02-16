@@ -35,7 +35,7 @@ import Morsel
 
 function make_app()
   app = Morsel.app()
-  Morsel.post(calculate, app, "/api/1/calculate")
+  Morsel.post(handle_calculate, app, "/api/1/calculate")
   return app
 end
 

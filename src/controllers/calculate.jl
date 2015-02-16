@@ -21,10 +21,14 @@
 
 
 using Biryani
+using Dates
 import JSON
 
+using OpenFiscaCore: calculate, Simulation, YearPeriod
+using OpenFiscaFrance: tax_benefit_system
 
-function calculate(req, res)
+
+function handle_calculate(req, res)
   inputs = req.http_req.data
   params = JSON.parse(inputs)
   params_to_data = struct(
@@ -45,8 +49,11 @@ function calculate(req, res)
     return bad_request(res, errors = errors)
   end
 
+  year = 2013
+  simulation = Simulation(tax_benefit_system, YearPeriod(Date(year, 1, 1)))
+  value = calculate(simulation, "irpp")
   response_data = [
-    "value" => 999.9,
+    "value" => value,
   ]
   return respond_json(res, data = response_data)
 end
