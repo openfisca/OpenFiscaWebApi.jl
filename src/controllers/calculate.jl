@@ -30,7 +30,7 @@ using OpenFiscaFrance: tax_benefit_system
 
 function handle_calculate(req, res)
   inputs = req.http_req.data
-  params = JSON.parse(inputs)
+  params = JSON.parse(inputs) # TODO use biryani converter
   params_to_data = struct(
     [
       "variables" => pipe(
