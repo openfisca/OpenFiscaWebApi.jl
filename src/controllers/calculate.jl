@@ -24,7 +24,7 @@ using Biryani
 using Dates
 import JSON
 
-using OpenFiscaCore: calculate, Simulation, YearPeriod
+using OpenFiscaCore: calculate, Simulation, to_scenario, YearPeriod
 using OpenFiscaFrance: tax_benefit_system
 
 
@@ -49,8 +49,13 @@ function handle_calculate(req, res)
     return bad_request(res, errors = errors)
   end
 
-  year = 2013
-  simulation = Simulation(tax_benefit_system, YearPeriod(Date(year, 1, 1)))
+  scenario = Convertible([
+    "test_case" => [
+      "individus" => [(String => Any)[]],
+    ],
+    "year" => 2013,
+  ]) |> to_scenario(tax_benefit_system, repair = true) |> to_value
+  simulation = Simulation(scenario, debug = true)
   value = calculate(simulation, "irpp")
   response_data = [
     "value" => value,
