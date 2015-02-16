@@ -29,7 +29,6 @@ export make_app, start
 include("controllers/calculate.jl")
 include("responses.jl")
 
-import JSON
 import Morsel
 
 
