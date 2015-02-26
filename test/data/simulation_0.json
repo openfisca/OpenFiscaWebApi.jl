@@ -1,0 +1,31 @@
+{
+  "scenarios": [
+    {
+      "test_case": {
+        "familles": [
+          {
+            "parents": ["ind0"]
+          }
+        ],
+        "foyers_fiscaux": [
+          {
+            "declarants": ["ind0"]
+          }
+        ],
+        "individus": [
+          {
+            "id": "ind0",
+            "sali": 50000
+          }
+        ],
+        "menages": [
+          {
+            "personne_de_reference": "ind0"
+          }
+        ]
+      },
+      "period": "2013"
+    }
+  ],
+  "variables": ["irpp"]
+}
