@@ -44,6 +44,8 @@ end
 
 
 function handle_calculate_version_2(req::MeddleRequest, res::Response)
+  @assert req.http_req.method == "POST"
+
   input_to_params = pipe(
     input_to_json,
     test_isa(Dict),
@@ -51,7 +53,7 @@ function handle_calculate_version_2(req::MeddleRequest, res::Response)
   )
   params, error = Convertible(req.http_req.data) |> input_to_params |> to_value_error
   if error !== nothing
-    return handle(middleware(BadRequest, ApiData([error]), JsonData), req, res)
+    return res, middleware(BadRequest, APIData([error]), JSONData)
   end
 
   const DEFAULT_SCENARIO = [
@@ -96,7 +98,7 @@ function handle_calculate_version_2(req::MeddleRequest, res::Response)
     ) |> to_value_error
   end
   if errors !== nothing
-    return handle(middleware(BadRequest, ApiData(errors), JsonData), req, res)
+    return res, middleware(BadRequest, APIData(errors), JSONData)
   end
 
   simulations = map(scenarios) do scenario
@@ -116,5 +118,5 @@ function handle_calculate_version_2(req::MeddleRequest, res::Response)
     "params" => params,
     "value" => value,
   ]
-  return handle(middleware(ApiData(RESPONSE_DATA), JsonData), req, res)
+  return res, middleware(APIData(RESPONSE_DATA), JSONData)
 end

@@ -30,36 +30,26 @@ export make_app, start
 using Biryani
 using Biryani.JsonConverters
 using Dates
-using HttpCommon: Headers, Response, STATUS_CODES
+using HttpCommon
 import JSON
-using Meddle: handle, MeddleRequest, middleware, Midware, respond
+using Meddle
 import Morsel
 
-using OpenFiscaCore: calculate, get_variable, Simulation, to_scenario, YearPeriod
-using OpenFiscaFrance: EntityDefinition, tax_benefit_system
+using OpenFiscaCore
+using OpenFiscaFrance
 
 
 include("controllers/calculate.jl")
 include("controllers/entities.jl")
-include("responses.jl")
+include("midwares.jl")
 
 
 function make_app()
   app = Morsel.app()
-  # with(app, cors) do app
-  Morsel.post(app, "/api/<api_version::Int>/calculate") do req::MeddleRequest, res::Response
-    if req.params[:api_version] === 2
-      return handle_calculate_version_2(req, res)
-    end
-    return handle(middleware(NotFound, ApiData(), JsonData), req, res)
+  Morsel.with(app, CORS) do app
+    Morsel.route(app, POST | OPTIONS, "/api/<api_version::%2>/calculate", handle_calculate_version_2)
+    Morsel.route(app, GET | OPTIONS, "/api/<api_version::%2>/entities", handle_entities_version_2)
   end
-  Morsel.get(app, "/api/<api_version::Int>/entities") do req::MeddleRequest, res::Response
-    if req.params[:api_version] === 2
-      return handle_entities_version_2(req, res)
-    end
-    return handle(middleware(NotFound, ApiData(), JsonData), req, res)
-  end
-  # end
   return app
 end
 
