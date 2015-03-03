@@ -88,7 +88,7 @@ CORS = Midware() do req::MeddleRequest, res::Response
       "Access-Control-Allow-Methods" => method,
       "Access-Control-Allow-Headers" => headers_name
     ])
-    res = handle(middleware(NoContent), req, res)
+    res = handle(NoContent, req, res)
     return respond(req, res)
   end
   merge!(headers, [
@@ -123,7 +123,11 @@ end
 BadRequest = Status(400)
 
 
-NoContent = Status(204)
+NoContent = Midware() do req::MeddleRequest, res::Response
+  res = handle(Status(204), req, res)
+  delete!(res.headers, "Content-Type")
+  req, res
+end
 
 
 # Meddle.NotFound does not fit because it calls respond() which does not allow chaining with JSON midwares.
