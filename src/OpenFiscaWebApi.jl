@@ -26,20 +26,45 @@ module OpenFiscaWebApi
 
 export make_app, start
 
-include("controllers/calculate.jl")
-include("responses.jl")
 
+using Biryani
+using Biryani.JsonConverters
+using Dates
+using HttpCommon: Headers, Response, STATUS_CODES
+import JSON
+using Meddle: handle, MeddleRequest, middleware, Midware, respond
 import Morsel
+
+using OpenFiscaCore: calculate, get_variable, Simulation, to_scenario, YearPeriod
+using OpenFiscaFrance: EntityDefinition, tax_benefit_system
+
+
+include("controllers/calculate.jl")
+include("controllers/entities.jl")
+include("responses.jl")
 
 
 function make_app()
   app = Morsel.app()
-  Morsel.post(handle_calculate, app, "/api/1/calculate")
+  # with(app, cors) do app
+  Morsel.post(app, "/api/<api_version::Int>/calculate") do req::MeddleRequest, res::Response
+    if req.params[:api_version] === 2
+      return handle_calculate_version_2(req, res)
+    end
+    return handle(middleware(NotFound, ApiData(), JsonData), req, res)
+  end
+  Morsel.get(app, "/api/<api_version::Int>/entities") do req::MeddleRequest, res::Response
+    if req.params[:api_version] === 2
+      return handle_entities_version_2(req, res)
+    end
+    return handle(middleware(NotFound, ApiData(), JsonData), req, res)
+  end
+  # end
   return app
 end
 
 
-function start(port::Int)
+function start(port::Integer)
   app = make_app()
   Morsel.start(app, port)
 end

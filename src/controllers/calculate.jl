@@ -20,15 +20,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-using Biryani
-using Biryani.JsonConverters
-using Dates
-import JSON
-
-using OpenFiscaCore: calculate, get_array, get_variable, Simulation, to_scenario, YearPeriod
-using OpenFiscaFrance: tax_benefit_system
-
-
 function build_test_case(scenario, simulation, variables)
     new_test_case = deepcopy(scenario.test_case)
     for variable_name in variables
@@ -52,7 +43,7 @@ function build_test_case(scenario, simulation, variables)
 end
 
 
-function handle_calculate(req, res)
+function handle_calculate_version_2(req::MeddleRequest, res::Response)
   input_to_params = pipe(
     input_to_json,
     test_isa(Dict),
@@ -60,19 +51,19 @@ function handle_calculate(req, res)
   )
   params, error = Convertible(req.http_req.data) |> input_to_params |> to_value_error
   if error !== nothing
-    return bad_request(res, errors = [error])
+    return handle(middleware(BadRequest, ApiData([error]), JsonData), req, res)
   end
 
-  const default_scenario = [
+  const DEFAULT_SCENARIO = [
     "period" => YearPeriod(2013),
     "test_case" => [
       "individus" => [(String => Any)[]],
     ],
   ]
-  const params_to_data = struct(
+  const PARAMS_TO_DATA = struct(
     [
       "scenarios" => pipe(
-        default([default_scenario]),
+        default([DEFAULT_SCENARIO]),
         uniform_sequence(
           require, # Real conversion is done after.
         ),
@@ -97,7 +88,7 @@ function handle_calculate(req, res)
       ),
     ],
   )
-  data, errors = Convertible(params) |> params_to_data |> to_value_error
+  data, errors = Convertible(params) |> PARAMS_TO_DATA |> to_value_error
   if errors === nothing
     scenarios, errors = Convertible(data["scenarios"]) |> uniform_sequence(
       to_scenario(tax_benefit_system, repair = data["validate"]),
@@ -105,7 +96,7 @@ function handle_calculate(req, res)
     ) |> to_value_error
   end
   if errors !== nothing
-    return bad_request(res, errors = errors)
+    return handle(middleware(BadRequest, ApiData(errors), JsonData), req, res)
   end
 
   simulations = map(scenarios) do scenario
@@ -121,9 +112,9 @@ function handle_calculate(req, res)
     for (scenario, simulation) in zip(scenarios, simulations)
   ]
 
-  const response_data = [
+  const RESPONSE_DATA = [
     "params" => params,
     "value" => value,
   ]
-  return respond_json(res, data = response_data)
+  return handle(middleware(ApiData(RESPONSE_DATA), JsonData), req, res)
 end

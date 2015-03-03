@@ -20,10 +20,22 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import OpenFiscaWebApi
-
-
-const PORT = 2500
-
-
-OpenFiscaWebApi.start(PORT)
+function handle_entities_version_2(req::MeddleRequest, res::Response)
+#   try
+#     headers = handle_cross_origin_resource_sharing(req.http_req)
+#   catch
+#     rethrow()
+#   end
+  entities = [
+    name => [
+      "is_person" => definition.is_person,
+      "name" => definition.name,
+      "name_plural" => definition.name_plural,
+    ]
+    for (name, definition) in tax_benefit_system.entity_definition_by_name
+  ]
+  const RESPONSE_DATA = [
+    "entities" => entities,
+  ]
+  return handle(middleware(ApiData(RESPONSE_DATA), JsonData), req, res)
+end
