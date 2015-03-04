@@ -20,8 +20,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function build_test_case(scenario, simulation, variables)
-    new_test_case = deepcopy(scenario.test_case)
+function fill_test_case!(test_case, simulation::Simulation, variables)
     for variable_name in variables
         variable = get_variable(simulation, variable_name)
         variable_value_json = [
@@ -31,7 +30,7 @@ function build_test_case(scenario, simulation, variables)
           ]
           for (period, array) in variable.array_by_period
         ]
-        entity_members = new_test_case[variable.definition.entity_definition.name_plural]
+        entity_members = test_case[variable.definition.entity_definition.name_plural]
         for (entity_member_index, entity_member) in enumerate(entity_members)
             entity_member[variable.definition.name] = [
                 period => array_json[entity_member_index]
@@ -39,7 +38,6 @@ function build_test_case(scenario, simulation, variables)
             ]
         end
     end
-    return new_test_case
 end
 
 
@@ -109,10 +107,13 @@ function handle_calculate_version_2(req::MeddleRequest, res::Response)
     return simulation
   end
 
-  value = [
-    build_test_case(scenario, simulation, data["variables"])
-    for (scenario, simulation) in zip(scenarios, simulations)
-  ]
+  value = map(zip(scenarios, simulations)) do scenario_and_simulation
+    # https://github.com/JuliaLang/julia/issues/6614
+    scenario, simulation = scenario_and_simulation
+    new_test_case = deepcopy(scenario.test_case)
+    fill_test_case!(new_test_case, simulation, data["variables"])
+    return new_test_case
+  end
 
   const RESPONSE_DATA = [
     "params" => params,
