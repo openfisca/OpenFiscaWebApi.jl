@@ -23,11 +23,6 @@
 function handle_entities_version_2(req::MeddleRequest, res::Response)
   @assert req.http_req.method == "GET"
 
-#   try
-#     headers = handle_cross_origin_resource_sharing(req.http_req)
-#   catch
-#     rethrow()
-#   end
   entities = [
     name => [
       "is_person" => definition.is_person,
