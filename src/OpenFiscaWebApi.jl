@@ -47,8 +47,8 @@ include("midwares.jl")
 function make_app()
   app = Morsel.app()
   Morsel.with(app, CORS) do app
-    Morsel.route(app, POST | OPTIONS, "/api/<api_version::%2>/calculate", handle_calculate_version_2)
-    Morsel.route(app, GET | OPTIONS, "/api/<api_version::%2>/entities", handle_entities_version_2)
+    Morsel.route(app, POST | OPTIONS, "/api/2/calculate", handle_calculate_version_2)
+    Morsel.route(app, GET | OPTIONS, "/api/2/entities", handle_entities_version_2)
   end
   return app
 end

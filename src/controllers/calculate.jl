@@ -43,6 +43,7 @@ end
 
 function handle_calculate_version_2(req::MeddleRequest, res::Response)
   @assert req.http_req.method == "POST"
+  req.params[:api_version] = 2
 
   input_to_params = pipe(
     input_to_json,
