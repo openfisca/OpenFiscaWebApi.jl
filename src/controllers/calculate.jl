@@ -51,7 +51,7 @@ function handle_calculate_version_2(req::MeddleRequest, res::Response)
   )
   params, error = Convertible(req.http_req.data) |> input_to_params |> to_value_error
   if error !== nothing
-    return res, middleware(BadRequest, APIData([error]), JSONData)
+    return handle(middleware(BadRequest, APIData([error]), JSONData), req, res)
   end
 
   const DEFAULT_SCENARIO = [
@@ -96,7 +96,7 @@ function handle_calculate_version_2(req::MeddleRequest, res::Response)
     ) |> to_value_error
   end
   if errors !== nothing
-    return res, middleware(BadRequest, APIData(errors), JSONData)
+    return handle(middleware(BadRequest, APIData(errors), JSONData), req, res)
   end
 
   simulations = map(scenarios) do scenario
@@ -119,5 +119,5 @@ function handle_calculate_version_2(req::MeddleRequest, res::Response)
     "params" => params,
     "value" => value,
   ]
-  return res, middleware(APIData(RESPONSE_DATA), JSONData)
+  return handle(middleware(APIData(RESPONSE_DATA), JSONData), req, res)
 end

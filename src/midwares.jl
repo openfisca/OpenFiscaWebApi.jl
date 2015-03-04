@@ -27,17 +27,6 @@ import Meddle: handle
 handle(midware::Midware, req::MeddleRequest, res::Response) = handle(middleware(midware), req, res)
 
 
-import Morsel: prepare_response
-
-# Allow controllers to return response and midware stack tuple.
-prepare_response(res_and_stack::(Response, MidwareStack), req::MeddleRequest, res::Response) =
-  prepare_response(handle(res_and_stack[2], req, res_and_stack[1]), req, res)
-
-# Allow controllers to return response and midware stack tuple.
-prepare_response(res_and_midware::(Response, Midware), req::MeddleRequest, res::Response) =
-  prepare_response(handle(res_and_midware[2], req, res_and_midware[1]), req, res)
-
-
 # Level 1 midwares
 
 function APIData(data::Dict)

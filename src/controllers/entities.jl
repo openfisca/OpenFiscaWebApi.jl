@@ -34,5 +34,5 @@ function handle_entities_version_2(req::MeddleRequest, res::Response)
   const RESPONSE_DATA = [
     "entities" => entities,
   ]
-  return res, middleware(APIData(RESPONSE_DATA), JSONData)
+  return handle(middleware(APIData(RESPONSE_DATA), JSONData), req, res)
 end
