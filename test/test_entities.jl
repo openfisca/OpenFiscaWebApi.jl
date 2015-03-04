@@ -20,44 +20,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-
-module OpenFiscaWebApi
-
-
-export handle_calculate_version_2, handle_entities_version_2, make_app, prepare_response, start
-
-
-using Biryani
-using Biryani.JsonConverters
-using Dates
-using HttpCommon
-import JSON
-using Meddle
-import Morsel
-
-using OpenFiscaCore
-using OpenFiscaFrance
-
-
-include("controllers/calculate.jl")
-include("controllers/entities.jl")
-include("midwares.jl")
-
-
-function make_app()
-  app = Morsel.app()
-  Morsel.with(app, CORS) do app
-    Morsel.route(app, POST | OPTIONS, "/api/2/calculate", handle_calculate_version_2)
-    Morsel.route(app, GET | OPTIONS, "/api/2/entities", handle_entities_version_2)
-  end
-  return app
+function test_handle_entities_version_2()
+    res = handle_entities_version_2(MeddleRequest("GET", [:api_version => 2]), Response())
+    @test res.status == 200
+    @test res.headers["Content-Type"] == "application/json; charset=utf-8"
+    data = JSON.parse(res.data)
+    @test haskey(data, "entities")
+    @test isa(data["entities"], Dict)
 end
 
 
-function start(port::Integer)
-  app = make_app()
-  Morsel.start(app, port)
-end
-
-
-end # module
+test_handle_entities_version_2()
