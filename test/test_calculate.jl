@@ -20,14 +20,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function test_handle_calculate_version_2()
-    res = handle_calculate_version_2(MeddleRequest("POST", [:api_version => 2]), Response())
-    @test res.status == 200
-    @test res.headers["Content-Type"] == "application/json; charset=utf-8"
-    data = JSON.parse(res.data)
-    @test haskey(data, "value")
-    @test isa(data["value"], Array)
+facts("calculate controller") do
+    context("empty body") do
+        res = handle_calculate_version_2(MeddleRequest("POST", [:api_version => 2]), Response())
+        @fact res.status => 400
+        @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
+        data = JSON.parse(res.data)
+        @fact isa(data, Dict) => true
+        @fact haskey(data, "error") => true
+    end
 end
-
-
-test_handle_calculate_version_2()

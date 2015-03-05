@@ -20,14 +20,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function test_handle_entities_version_2()
+facts("entities controller") do
     res = handle_entities_version_2(MeddleRequest("GET", [:api_version => 2]), Response())
-    @test res.status == 200
-    @test res.headers["Content-Type"] == "application/json; charset=utf-8"
+    @fact res.status => 200
+    @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
     data = JSON.parse(res.data)
-    @test haskey(data, "entities")
-    @test isa(data["entities"], Dict)
+    @fact isa(data, Dict) => true
+    @fact haskey(data, "entities") => true
+    @fact isa(data["entities"], Dict) => true
 end
-
-
-test_handle_entities_version_2()
