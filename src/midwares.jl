@@ -36,7 +36,7 @@ function APIData(data::Dict)
         "code" => res.status,
         "message" => STATUS_CODES[res.status],
       }
-      if length(data) > 0
+      if !isempty(data)
         error_field["errors"] = data
       end
       return error_field
