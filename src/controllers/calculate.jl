@@ -110,7 +110,6 @@ function handle_calculate_version_2(req::MeddleRequest, res::Response)
   end
 
   value = map(zip(scenarios, simulations)) do scenario_and_simulation
-    # https://github.com/JuliaLang/julia/issues/6614
     scenario, simulation = scenario_and_simulation
     new_test_case = deepcopy(scenario.test_case)
     fill_test_case!(new_test_case, simulation, data["variables"])
