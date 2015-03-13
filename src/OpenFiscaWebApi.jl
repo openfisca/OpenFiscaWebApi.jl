@@ -39,6 +39,9 @@ using OpenFiscaCore
 using OpenFiscaFrance
 
 
+const DEFAULT_YEAR = 2013
+
+
 include("controllers/calculate.jl")
 include("controllers/entities.jl")
 include("midwares.jl")

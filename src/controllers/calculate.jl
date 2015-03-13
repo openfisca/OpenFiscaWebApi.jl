@@ -56,8 +56,8 @@ function handle_calculate_version_2(req::MeddleRequest, res::Response)
     return handle(middleware(BadRequest, APIData(["req_data" => error]), JSONData), req, res)
   end
 
-    "period" => YearPeriod(2013),
   default_scenario = [
+    "period" => YearPeriod(DEFAULT_YEAR),
     "test_case" => [
       "individus" => [(String => Any)[]],
     ],
