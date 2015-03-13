@@ -46,6 +46,7 @@ function handle_calculate_version_2(req::MeddleRequest, res::Response)
   req.params[:api_version] = 2
 
   input_to_params = pipe(
+    # TODO Check Content-Type
     input_to_json,
     test_isa(Dict),
     require,
@@ -55,16 +56,16 @@ function handle_calculate_version_2(req::MeddleRequest, res::Response)
     return handle(middleware(BadRequest, APIData(["req_data" => error]), JSONData), req, res)
   end
 
-  const DEFAULT_SCENARIO = [
     "period" => YearPeriod(2013),
+  default_scenario = [
     "test_case" => [
       "individus" => [(String => Any)[]],
     ],
   ]
-  const PARAMS_TO_DATA = struct(
+  params_to_data = struct(
     [
       "scenarios" => pipe(
-        default([DEFAULT_SCENARIO]),
+        default([default_scenario]),
         uniform_sequence(
           require, # Real conversion is done after.
         ),
@@ -89,7 +90,7 @@ function handle_calculate_version_2(req::MeddleRequest, res::Response)
       ),
     ],
   )
-  data, errors = Convertible(params) |> PARAMS_TO_DATA |> to_value_error
+  data, errors = Convertible(params) |> params_to_data |> to_value_error
   if errors === nothing
     scenarios, errors = Convertible(data["scenarios"]) |> uniform_sequence(
       to_scenario(tax_benefit_system, repair = data["validate"]),
@@ -116,9 +117,9 @@ function handle_calculate_version_2(req::MeddleRequest, res::Response)
     return new_test_case
   end
 
-  const RESPONSE_DATA = [
+  response_data = [
     "params" => params,
     "value" => value,
   ]
-  return handle(middleware(APIData(RESPONSE_DATA), JSONData), req, res)
+  return handle(middleware(APIData(response_data), JSONData), req, res)
 end

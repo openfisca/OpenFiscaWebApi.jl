@@ -32,8 +32,8 @@ function handle_entities_version_2(req::MeddleRequest, res::Response)
     ]
     for (name, definition) in tax_benefit_system.entity_definition_by_name
   ]
-  const RESPONSE_DATA = [
+  response_data = [
     "entities" => entities,
   ]
-  return handle(middleware(APIData(RESPONSE_DATA), JSONData), req, res)
+  return handle(middleware(APIData(response_data), JSONData), req, res)
 end

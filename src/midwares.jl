@@ -41,14 +41,14 @@ function APIData(data::Dict)
       end
       return error_field
     end
-    const API_DATA = [
+    api_data = [
       "api_version" => req.params[:api_version],
       "method" => req.http_req.method,
     ]
     req.state[:response_data] = merge(
       Dict(),
       400 <= res.status <= 599 ? ["error" => build_error_field()] : data,
-      API_DATA,
+      api_data,
     )
     req, res
   end
@@ -59,8 +59,8 @@ APIData() = APIData(Dict())
 
 CORS = Midware() do req::MeddleRequest, res::Response
   # Cf http://www.w3.org/TR/cors/#resource-processing-model
-  const ORIGIN = get(req.http_req.headers, "Origin", nothing)
-  if ORIGIN === nothing
+  origin = get(req.http_req.headers, "Origin", nothing)
+  if origin === nothing
     return req, res
   end
   headers = Headers()
@@ -72,7 +72,7 @@ CORS = Midware() do req::MeddleRequest, res::Response
     headers_name = get(req.http_req.headers, "Access-Control-Request-Headers", "")
     merge!(headers, [
       "Access-Control-Allow-Credentials" => "true",
-      "Access-Control-Allow-Origin" => ORIGIN,
+      "Access-Control-Allow-Origin" => origin,
       "Access-Control-Max-Age" => "3628800",
       "Access-Control-Allow-Methods" => method,
       "Access-Control-Allow-Headers" => headers_name
@@ -82,7 +82,7 @@ CORS = Midware() do req::MeddleRequest, res::Response
   end
   merge!(headers, [
     "Access-Control-Allow-Credentials" => "true",
-    "Access-Control-Allow-Origin" => ORIGIN,
+    "Access-Control-Allow-Origin" => origin,
     "Access-Control-Expose-Headers" => "WWW-Authenticate",
   ])
   merge!(res.headers, headers)
