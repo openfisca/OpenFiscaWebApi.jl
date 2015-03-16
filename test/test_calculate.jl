@@ -22,7 +22,7 @@
 
 facts("calculate controller") do
     context("empty body") do
-        res = handle_calculate_version_2(MeddleRequest("POST", [:api_version => 2]), Response())
+        res = handle_calculate_version_1(MeddleRequest("POST", [:api_version => 1]), Response())
         @fact res.status => 400
         @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
         data = JSON.parse(res.data)

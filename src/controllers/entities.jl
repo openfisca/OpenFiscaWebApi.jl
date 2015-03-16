@@ -20,9 +20,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function handle_entities_version_2(req::MeddleRequest, res::Response)
+function handle_entities_version_1(req::MeddleRequest, res::Response)
   @assert req.http_req.method == "GET"
-  req.params[:api_version] = 2
+  req.params[:api_version] = 1
 
   entities = [
     name => [

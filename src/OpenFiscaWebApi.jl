@@ -24,7 +24,7 @@
 module OpenFiscaWebApi
 
 
-export handle_calculate_version_2, handle_entities_version_2, make_app, prepare_response, start
+export handle_calculate_version_1, handle_entities_version_1, make_app, prepare_response, start
 
 
 using Biryani
@@ -43,6 +43,7 @@ const DEFAULT_YEAR = 2013
 
 
 include("controllers/calculate.jl")
+include("controllers/simulate.jl")
 include("controllers/entities.jl")
 include("midwares.jl")
 
@@ -50,8 +51,9 @@ include("midwares.jl")
 function make_app()
   app = Morsel.app()
   Morsel.with(app, CORS) do app
-    Morsel.route(app, POST | OPTIONS, "/api/2/calculate", handle_calculate_version_2)
-    Morsel.route(app, GET | OPTIONS, "/api/2/entities", handle_entities_version_2)
+    Morsel.route(app, POST | OPTIONS, "/api/1/calculate", handle_calculate_version_1)
+    Morsel.route(app, GET | OPTIONS, "/api/1/entities", handle_entities_version_1)
+    Morsel.route(app, POST | OPTIONS, "/api/1/simulate", handle_simulate_version_1)
   end
   return app
 end
