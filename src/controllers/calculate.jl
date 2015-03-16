@@ -56,7 +56,7 @@ function handle_calculate_version_1(req::MeddleRequest, res::Response)
     return handle(middleware(BadRequest, APIData(["req_data" => error]), JSONData), req, res)
   end
 
-  default_scenario = [
+  default_scenario_json = [
     "period" => YearPeriod(DEFAULT_YEAR),
     "test_case" => [
       "individus" => [(String => Any)[]],
@@ -65,7 +65,7 @@ function handle_calculate_version_1(req::MeddleRequest, res::Response)
   params_to_data = struct(
     [
       "scenarios" => pipe(
-        default([default_scenario]),
+        default([default_scenario_json]),
         uniform_sequence(
           require, # Real conversion is done after.
         ),
