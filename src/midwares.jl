@@ -77,6 +77,7 @@ CORS = Midware() do req::MeddleRequest, res::Response
       "Access-Control-Allow-Methods" => method,
       "Access-Control-Allow-Headers" => headers_name
     ])
+    merge!(res.headers, headers)
     res = handle(NoContent, req, res)
     return respond(req, res)
   end
