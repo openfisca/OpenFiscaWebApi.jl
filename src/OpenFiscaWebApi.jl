@@ -24,7 +24,12 @@
 module OpenFiscaWebApi
 
 
-export handle_calculate_version_1, handle_entities_version_1, make_app, prepare_response, start
+export handle_calculate_version_1,
+  handle_entities_version_1,
+  handle_simulate_version_1,
+  make_app,
+  prepare_response,
+  start
 
 
 using Biryani

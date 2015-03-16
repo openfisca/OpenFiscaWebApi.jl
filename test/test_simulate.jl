@@ -20,29 +20,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-using Base.Test
-
-using FactCheck
-using HttpCommon
-using Meddle
-
-using OpenFiscaWebApi
-
-
-import HttpCommon: Request
-
-function Request(method::String)
-  req = Request()
-  req.method = method
-  req
+facts("simulate controller") do
+    context("empty body") do
+        res = handle_simulate_version_1(MeddleRequest("POST", [:api_version => 1]), Response())
+        @fact res.status => 400
+        @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
+        data = JSON.parse(res.data)
+        @fact isa(data, Dict) => true
+        @fact haskey(data, "error") => true
+    end
 end
-
-
-import Meddle: MeddleRequest
-
-MeddleRequest(method::String, params::Dict) = MeddleRequest(Request(method), Dict{Symbol,Any}(), params)
-
-
-include("test_calculate.jl")
-include("test_entities.jl")
-include("test_simulate.jl")
