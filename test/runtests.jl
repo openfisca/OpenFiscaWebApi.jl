@@ -41,6 +41,8 @@ end
 import Meddle: MeddleRequest
 
 MeddleRequest(method::String, params::Dict) = MeddleRequest(Request(method), Dict{Symbol,Any}(), params)
+MeddleRequest(method::String, params::Dict, data::String) =
+  MeddleRequest(Request(method, "", Dict{String,String}(), data), Dict{Symbol,Any}(), params)
 
 
 include("test_calculate.jl")

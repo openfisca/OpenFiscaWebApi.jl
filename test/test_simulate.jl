@@ -20,13 +20,56 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+simulation_json_str = """
+{
+  "scenarios": [
+    {
+      "test_case": {
+        "familles": [
+          {
+            "parents": ["ind0"]
+          }
+        ],
+        "foyers_fiscaux": [
+          {
+            "declarants": ["ind0"]
+          }
+        ],
+        "individus": [
+          {
+            "id": "ind0"
+          }
+        ],
+        "menages": [
+          {
+            "personne_de_reference": "ind0"
+          }
+        ]
+      },
+      "period": "2013"
+    }
+  ]
+}
+"""
+
+
 facts("simulate controller") do
-    context("empty body") do
-        res = handle_simulate_version_1(MeddleRequest("POST", [:api_version => 1]), Response())
-        @fact res.status => 400
-        @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
-        data = JSON.parse(res.data)
-        @fact isa(data, Dict) => true
-        @fact haskey(data, "error") => true
-    end
+  context("empty body") do
+    res = handle_simulate_version_1(MeddleRequest("POST", [:api_version => 1]), Response())
+    @fact res.status => 400
+    @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
+    data = JSON.parse(res.data)
+    @fact isa(data, Dict) => true
+    @fact haskey(data, "error") => true
+  end
+  context("single individual") do
+    res = handle_simulate_version_1(MeddleRequest("POST", [:api_version => 1], simulation_json_str), Response())
+    @fact res.status => 200
+    @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
+    data = JSON.parse(res.data)
+    @fact isa(data, Dict) => true
+    @fact haskey(data, "error") => false
+    @fact haskey(data, "value") => true
+    @show data
+  end
 end
