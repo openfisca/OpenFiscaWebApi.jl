@@ -70,6 +70,5 @@ facts("simulate controller") do
     @fact isa(data, Dict) => true
     @fact haskey(data, "error") => false
     @fact haskey(data, "value") => true
-    @show data
   end
 end
