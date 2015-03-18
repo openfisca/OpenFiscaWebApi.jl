@@ -20,20 +20,31 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function calculate_and_fill_values!(node::Dict, simulations::Array{Simulation})
+function fill_decomposition_json!(node::Dict, simulations::Array{Simulation})
   if haskey(node, "children")
     for child in node["children"]
-      calculate_and_fill_values!(child, simulations)
+      fill_decomposition_json!(child, simulations)
     end
-    node["values"] = mapreduce(child -> child["values"], +, node["children"])
+    node["values"] = mapreduce(child -> child["values"], .+, node["children"])
   else
-    simulations_values = map(simulations) do simulation
+    simulations_values = mapreduce(vcat, simulations) do simulation
       variable_at_period = calculate(simulation, node["code"], accept_other_period = true)
       if variable_at_period.period != simulation.period
         variable_at_period = calculate_add_divide(simulation, node["code"])
       end
-      simulation_value = first(get_array(variable_at_period))
-      return simulation_value
+      array = get_array(variable_at_period)
+      foyer_fiscal = simulation.entity_by_name["foyer_fiscal"]
+      person = get_person(simulation)
+      variable_entity = get_entity(get_variable(variable_at_period))
+      if variable_entity === person
+        array_handle = sum_person_in_entity(variable_at_period, foyer_fiscal)
+        array = get_array(array_handle)
+      elseif variable_entity !== foyer_fiscal
+        array_handle = entity_to_person(variable_at_period, Role(1))
+        array_handle = sum_person_in_entity(array_handle, foyer_fiscal, variable_at_period.period)
+        array = get_array(array_handle)
+      end
+      return array
     end
     node["values"] = simulations_values
   end
@@ -92,7 +103,7 @@ function handle_simulate_version_1(req::MeddleRequest, res::Response)
 
   decomposition_json = to_json(default_decomposition)
   simulations::Array{Simulation} = map(scenario -> Simulation(scenario, debug = false, trace = false), scenarios)
-  calculate_and_fill_values!(decomposition_json, simulations)
+  fill_decomposition_json!(decomposition_json, simulations)
 
   response_data = [
     "params" => params,
