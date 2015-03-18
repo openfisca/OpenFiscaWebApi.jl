@@ -121,4 +121,4 @@ to_json(name::String, label::String, short_label::String) = (String => Any)[
 ]
 
 to_json(variable_definition::VariableDefinition) = to_json(variable_definition.name, variable_definition.label,
-  "No short label for VariableDefinition")
+  variable_definition.label) # TODO Implement short label for VariableDefinition.
