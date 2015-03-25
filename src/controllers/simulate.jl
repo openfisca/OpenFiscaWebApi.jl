@@ -20,37 +20,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function fill_decomposition_json!(node::Dict, simulations::Array{Simulation})
-  if haskey(node, "children")
-    for child in node["children"]
-      fill_decomposition_json!(child, simulations)
-    end
-    node["values"] = mapreduce(child -> child["values"], .+, node["children"])
-  else
-    simulations_values = mapreduce(vcat, simulations) do simulation
-      variable_at_period = calculate(simulation, node["code"], accept_other_period = true)
-      if variable_at_period.period != simulation.period
-        variable_at_period = calculate_add_divide(simulation, node["code"])
-      end
-      array = get_array(variable_at_period)
-      foyer_fiscal = simulation.entity_by_name["foyer_fiscal"]
-      person = get_person(simulation)
-      variable_entity = get_entity(get_variable(variable_at_period))
-      if variable_entity === person
-        array_handle = sum_person_in_entity(variable_at_period, foyer_fiscal)
-        array = get_array(array_handle)
-      elseif variable_entity !== foyer_fiscal
-        array_handle = entity_to_person(variable_at_period, Role(1))
-        array_handle = sum_person_in_entity(array_handle, foyer_fiscal, variable_at_period.period)
-        array = get_array(array_handle)
-      end
-      return array
-    end
-    node["values"] = simulations_values
-  end
-end
-
-
 function handle_simulate_version_1(req::MeddleRequest, res::Response)
   @assert req.http_req.method == "POST"
   req.params[:api_version] = 1
@@ -101,9 +70,8 @@ function handle_simulate_version_1(req::MeddleRequest, res::Response)
     return handle(middleware(BadRequest, APIData(["scenarios" => errors]), JSONData), req, res)
   end
 
-  decomposition_json = to_json(default_decomposition)
   simulations::Array{Simulation} = map(scenario -> Simulation(scenario, debug = false, trace = false), scenarios)
-  fill_decomposition_json!(decomposition_json, simulations)
+  decomposition_json = to_json_with_values(default_decomposition, simulations)
 
   response_data = [
     "params" => params,
@@ -113,23 +81,43 @@ function handle_simulate_version_1(req::MeddleRequest, res::Response)
 end
 
 
-function to_json(decomposition_node::DecompositionNode; root = true)
-  json_node = to_json(decomposition_node.name, decomposition_node.label, decomposition_node.short_label)
-  json_node["children"] = map(child -> isa(child, DecompositionNode) ? to_json(child; root = false) : to_json(child),
-    decomposition_node.children)
-  if root
-    json_node["@context"] = "http://openfisca.fr/contexts/decomposition.jsonld"
+function to_json_with_values(decomposition_node::DecompositionNode, simulations::Array{Simulation})
+  node_json = (String => Any)[
+    "code" => decomposition_node.name,
+    "color" => [
+      decomposition_node.color.red,
+      decomposition_node.color.green,
+      decomposition_node.color.blue,
+    ],
+    "name" => decomposition_node.label,
+    "short_name" => decomposition_node.short_label,
+  ]
+  if decomposition_node.children === nothing
+    node_json["values"] = mapreduce(vcat, simulations) do simulation
+      variable_at_period = calculate(simulation, decomposition_node.name, accept_other_period = true)
+      if variable_at_period.period != simulation.period
+        variable_at_period = calculate_add_divide(simulation, decomposition_node.name)
+      end
+      array = get_array(variable_at_period)
+      foyer_fiscal = simulation.entity_by_name["foyer_fiscal"]
+      person = get_person(simulation)
+      variable_entity = get_entity(get_variable(variable_at_period))
+      if variable_entity === person
+        array_handle = sum_person_in_entity(variable_at_period, foyer_fiscal)
+        array = get_array(array_handle)
+      elseif variable_entity !== foyer_fiscal
+        array_handle = entity_to_person(variable_at_period, Role(1))
+        array_handle = sum_person_in_entity(array_handle, foyer_fiscal, variable_at_period.period)
+        array = get_array(array_handle)
+      end
+      return array
+    end
+  else
+    children_nodes_json = map(child_node -> to_json_with_values(child_node, simulations), decomposition_node.children)
+    merge!(node_json, [
+      "children" => children_nodes_json,
+      "values" => mapreduce(child_node_json -> child_node_json["values"], .+, children_nodes_json),
+    ])
   end
-  json_node
+  node_json
 end
-
-to_json(name::String, label::String, short_label::String) = (String => Any)[
-  "@type" => "Node",
-  "code" => name,
-  "color" => [rand(0:255), rand(0:255), rand(0:255)], # Colors are not implemented in Julia, a random color is picked.
-  "name" => label,
-  "short_name" => short_label,
-]
-
-to_json(variable_definition::VariableDefinition) = to_json(variable_definition.name, variable_definition.label,
-  variable_definition.label) # TODO Implement short label for VariableDefinition.
