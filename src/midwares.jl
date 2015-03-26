@@ -43,7 +43,7 @@ function APIData(data::Dict)
     end
     api_data = [
       "api_version" => req.params[:api_version],
-      "method" => req.http_req.method,
+      "method" => req.http_req.resource,
     ]
     req.state[:response_data] = merge(
       Dict(),
