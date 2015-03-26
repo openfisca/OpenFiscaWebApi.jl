@@ -24,16 +24,31 @@ function handle_entities_version_1(req::MeddleRequest, res::Response)
   @assert req.http_req.method == "GET"
   req.params[:api_version] = 1
 
-  entities = [
-    name => [
-      "is_person" => definition.is_person,
-      "name" => definition.name,
-      "name_plural" => definition.name_plural,
-    ]
-    for (name, definition) in tax_benefit_system.entity_definition_by_name
+  entities_json = [
+    entity_definition.name_plural => to_json(entity_definition)
+    for entity_definition in values(tax_benefit_system.entity_definition_by_name)
   ]
-  response_data = [
-    "entities" => entities,
-  ]
+  response_data = ["entities" => entities_json]
   return handle(middleware(APIData(response_data), JSONData), req, res)
+end
+
+
+function to_json(entity_definition::EntityDefinition)
+  entity_json = (String => Any)[
+    "label" => ucfirst(entity_definition.label),
+    "nameKey" => entity_definition.name_key,
+  ]
+  if entity_definition.is_person
+    entity_json["isPersonsEntity"] = entity_definition.is_person
+  else
+    merge!(entity_json, [
+      "maxCardinalityByRoleKey" => entity_definition.max_persons_by_role_name,
+      "roles" => entity_definition.roles_name,
+      "labelByRoleKey" => [
+        role_name => ucfirst(label)
+        for (role_name, label) in entity_definition.label_by_role_name
+      ]
+    ])
+  end
+  return entity_json
 end
