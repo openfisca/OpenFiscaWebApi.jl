@@ -34,10 +34,7 @@ end
 
 
 function to_json(entity_definition::EntityDefinition)
-  entity_json = (String => Any)[
-    "label" => ucfirst(entity_definition.label),
-    "nameKey" => entity_definition.name_key,
-  ]
+  entity_json = (String => Any)["label" => ucfirst(entity_definition.label)]
   if entity_definition.is_person
     entity_json["isPersonsEntity"] = entity_definition.is_person
   else
