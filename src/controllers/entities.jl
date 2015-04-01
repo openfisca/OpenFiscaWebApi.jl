@@ -34,6 +34,7 @@ end
 
 
 function to_json(entity_definition::EntityDefinition)
+  # ucfirst is used for Python API compatibility.
   entity_json = (String => Any)["label" => ucfirst(entity_definition.label)]
   if entity_definition.is_person
     entity_json["isPersonsEntity"] = entity_definition.is_person
