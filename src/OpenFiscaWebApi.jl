@@ -26,6 +26,7 @@ module OpenFiscaWebApi
 
 export handle_calculate_version_1,
   handle_entities_version_1,
+  handle_fields_version_1,
   handle_simulate_version_1,
   make_app,
   prepare_response,
@@ -46,10 +47,13 @@ using OpenFiscaFrance
 
 const DEFAULT_YEAR = 2013
 
+const columns_tree = JSON.parsefile(joinpath(Pkg.dir("OpenFiscaWebApi"), "columns_tree.json"))
+
 
 include("controllers/calculate.jl")
 include("controllers/simulate.jl")
 include("controllers/entities.jl")
+include("controllers/fields.jl")
 include("midwares.jl")
 
 
@@ -58,6 +62,7 @@ function make_app()
   Morsel.with(app, CORS) do app
     Morsel.route(app, POST | OPTIONS, "/api/1/calculate", handle_calculate_version_1)
     Morsel.route(app, GET | OPTIONS, "/api/1/entities", handle_entities_version_1)
+    Morsel.route(app, GET | OPTIONS, "/api/1/fields", handle_fields_version_1)
     Morsel.route(app, POST | OPTIONS, "/api/1/simulate", handle_simulate_version_1)
   end
   return app
