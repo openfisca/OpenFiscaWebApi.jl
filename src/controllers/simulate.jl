@@ -24,8 +24,15 @@ function handle_simulate_version_1(req::MeddleRequest, res::Response)
   @assert req.http_req.method == "POST"
   req.params[:api_version] = 1
 
+  content_type = get(req.http_req.headers, "Content-Type", nothing)
+  if content_type !== nothing
+    content_type = split(content_type, ';', 2) |> first |> strip
+  end
+  if content_type != "application/json"
+    return handle(middleware(BadRequest, APIData(["content_type" => "Content-Type must be \"application/json\""]), JSONData), req, res)
+  end
+
   input_to_params = pipe(
-    # TODO Check Content-Type
     input_to_json,
     test_isa(Dict),
     require,
