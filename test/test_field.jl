@@ -20,13 +20,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function handle_entities_version_1(req::MeddleRequest, res::Response)
-  @assert req.http_req.method == "GET"
-
-  entities_json = [
-    entity_definition.name_plural => to_json(entity_definition)
-    for entity_definition in values(tax_benefit_system.entity_definition_by_name)
-  ]
-  response_data = ["entities" => entities_json]
-  return handle(middleware(APIDataV1(response_data), JSONData), req, res)
+facts("field controller") do
+    res = handle_field_version_1(MeddleRequest(method = "GET"), Response())
+    @fact res.status => 200
+    @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
+    data = JSON.parse(res.data)
+    @fact isa(data, Dict) => true
+    @fact haskey(data, "value") => true
+    @fact isa(data["value"], Dict) => true
+    @fact haskey(data["value"], "name") => true
+    @fact isa(data["value"]["name"], String) => true
 end

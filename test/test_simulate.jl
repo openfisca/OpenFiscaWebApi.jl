@@ -20,7 +20,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-simulation_json_str = """
+const simulation_json_str = """
 {
   "scenarios": [
     {
@@ -55,15 +55,29 @@ simulation_json_str = """
 
 facts("simulate controller") do
   context("empty body") do
-    res = handle_simulate_version_1(MeddleRequest("POST", [:api_version => 1]), Response())
+    res = handle_simulate_version_1(MeddleRequest(headers = json_headers, method = "POST"), Response())
     @fact res.status => 400
     @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
     data = JSON.parse(res.data)
     @fact isa(data, Dict) => true
     @fact haskey(data, "error") => true
   end
+  context("wrong req Content-Type") do
+    req = MeddleRequest(data = simulation_json_str, method = "POST")
+    res = handle_simulate_version_1(req, Response())
+    @fact res.status => 400
+    @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
+    data = JSON.parse(res.data)
+    @fact isa(data, Dict) => true
+    @fact haskey(data, "error") => true
+    @fact isa(data["error"], Dict) => true
+    @fact haskey(data["error"], "errors") => true
+    @fact isa(data["error"]["errors"], Dict) => true
+    @fact haskey(data["error"]["errors"], "content_type") => true
+  end
   context("single individual") do
-    res = handle_simulate_version_1(MeddleRequest("POST", [:api_version => 1], simulation_json_str), Response())
+    req = MeddleRequest(data = simulation_json_str, headers = json_headers, method = "POST")
+    res = handle_simulate_version_1(req, Response())
     @fact res.status => 200
     @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
     data = JSON.parse(res.data)

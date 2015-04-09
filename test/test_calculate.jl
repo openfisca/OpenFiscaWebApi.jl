@@ -22,11 +22,12 @@
 
 facts("calculate controller") do
     context("empty body") do
-        res = handle_calculate_version_1(MeddleRequest("POST", [:api_version => 1]), Response())
+        res = handle_calculate_version_1(MeddleRequest(method = "POST"), Response())
         @fact res.status => 400
         @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
         data = JSON.parse(res.data)
         @fact isa(data, Dict) => true
         @fact haskey(data, "error") => true
     end
+    # TODO Add a test with a test case
 end

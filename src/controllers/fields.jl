@@ -22,7 +22,6 @@
 
 function handle_fields_version_1(req::MeddleRequest, res::Response)
   @assert req.http_req.method == "GET"
-  req.params[:api_version] = 1
 
   entities_role = filter(
     x -> !isempty(x),
@@ -48,36 +47,5 @@ function handle_fields_version_1(req::MeddleRequest, res::Response)
   ]
 
   response_data = ["columns" => columns, "columns_tree" => columns_tree, "prestations" => prestations]
-  return handle(middleware(APIData(response_data), JSONData), req, res)
-end
-
-
-function to_json(variable_definition::VariableDefinition)
-  variable_definition_json = (String => Any)[
-    "cell_type" => variable_definition.cell_type,
-    "label" => variable_definition.label,
-    "name" => variable_definition.name,
-  ]
-  if variable_definition.cerfa_field !== nothing
-    variable_definition_json["cerfa_field"] = variable_definition.cerfa_field
-  end
-  if variable_definition.cell_format !== nothing
-    variable_definition_json["cell_format"] = variable_definition.cell_format
-  end
-  if variable_definition.cell_default !== nothing
-    variable_definition_json["default"] = variable_definition.cell_default
-  end
-  if variable_definition.entity_definition !== nothing
-    variable_definition_json["entity_name"] = variable_definition.entity_definition.name
-  end
-  if variable_definition.start_date !== nothing
-    variable_definition_json["start_date"] = variable_definition.start_date  # TODO isoformat
-  end
-  if variable_definition.stop_date !== nothing
-    variable_definition_json["stop_date"] = variable_definition.stop_date  # TODO isoformat
-  end
-  if variable_definition.url !== nothing
-    variable_definition_json["url"] = variable_definition.url
-  end
-  return variable_definition_json
+  return handle(middleware(APIDataV1(response_data), JSONData), req, res)
 end

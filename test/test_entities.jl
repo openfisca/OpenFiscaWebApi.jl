@@ -21,7 +21,7 @@
 
 
 facts("entities controller") do
-    res = handle_entities_version_1(MeddleRequest("GET", [:api_version => 1]), Response())
+    res = handle_entities_version_1(MeddleRequest(method = "GET"), Response())
     @fact res.status => 200
     @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
     data = JSON.parse(res.data)

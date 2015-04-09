@@ -29,7 +29,7 @@ handle(midware::Midware, req::MeddleRequest, res::Response) = handle(middleware(
 
 # Level 1 midwares
 
-function APIData(data::Dict)
+function APIData(data::Dict, api_version::Integer)
   Midware() do req::MeddleRequest, res::Response
     function build_error_field()
       error_field = {
@@ -42,8 +42,8 @@ function APIData(data::Dict)
       return error_field
     end
     api_data = [
-      "api_version" => req.params[:api_version],
-      "method" => req.http_req.resource,
+      "api_version" => api_version,
+      "method" => req.http_req.resource, # TODO Extract path without query string
     ]
     req.state[:response_data] = merge(
       Dict(),
@@ -55,6 +55,8 @@ function APIData(data::Dict)
 end
 
 APIData() = APIData(Dict())
+
+APIDataV1(data::Dict) = APIData(data, 1)
 
 
 CORS = Midware() do req::MeddleRequest, res::Response

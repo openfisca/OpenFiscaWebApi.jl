@@ -43,14 +43,14 @@ end
 
 function handle_calculate_version_1(req::MeddleRequest, res::Response)
   @assert req.http_req.method == "POST"
-  req.params[:api_version] = 1
 
   content_type = get(req.http_req.headers, "Content-Type", nothing)
   if content_type !== nothing
     content_type = split(content_type, ';', 2) |> first |> strip
   end
   if content_type != "application/json"
-    return handle(middleware(BadRequest, APIData(["content_type" => "Content-Type must be \"application/json\""]), JSONData), req, res)
+    return handle(middleware(BadRequest, APIDataV1(
+      ["content_type" => "Content-Type must be \"application/json\""]), JSONData), req, res)
   end
 
   input_to_params = pipe(
@@ -60,7 +60,7 @@ function handle_calculate_version_1(req::MeddleRequest, res::Response)
   )
   params, error = Convertible(req.http_req.data) |> input_to_params |> to_value_error
   if error !== nothing
-    return handle(middleware(BadRequest, APIData(["req_data" => error]), JSONData), req, res)
+    return handle(middleware(BadRequest, APIDataV1(["req_data" => error]), JSONData), req, res)
   end
 
   default_scenario_json = [
@@ -105,7 +105,7 @@ function handle_calculate_version_1(req::MeddleRequest, res::Response)
     ) |> to_value_error
   end
   if errors !== nothing
-    return handle(middleware(BadRequest, APIData(["scenarios" => errors]), JSONData), req, res)
+    return handle(middleware(BadRequest, APIDataV1(["scenarios" => errors]), JSONData), req, res)
   end
 
   simulations = map(scenarios) do scenario
@@ -127,5 +127,5 @@ function handle_calculate_version_1(req::MeddleRequest, res::Response)
     "params" => params,
     "value" => value,
   ]
-  return handle(middleware(APIData(response_data), JSONData), req, res)
+  return handle(middleware(APIDataV1(response_data), JSONData), req, res)
 end

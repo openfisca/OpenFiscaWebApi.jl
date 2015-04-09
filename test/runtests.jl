@@ -40,12 +40,14 @@ end
 
 import Meddle: MeddleRequest
 
-MeddleRequest(method::String, params::Dict) = MeddleRequest(Request(method), Dict{Symbol,Any}(), params)
-MeddleRequest(method::String, params::Dict, data::String) =
-  MeddleRequest(Request(method, "", Dict{String,String}(), data), Dict{Symbol,Any}(), params)
+MeddleRequest(; data::String = "", headers::Headers = Headers(), method::String = "GET", params::Dict = Dict(), resource::String = "") =
+  MeddleRequest(Request(method, resource, headers, data), Dict(), params)
+
+const json_headers = (String => String)["Content-Type" => "application/json; charset=utf-8"]
 
 
 include("test_calculate.jl")
 include("test_entities.jl")
+include("test_field.jl")
 include("test_fields.jl")
 include("test_simulate.jl")

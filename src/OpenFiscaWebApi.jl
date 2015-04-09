@@ -26,6 +26,7 @@ module OpenFiscaWebApi
 
 export handle_calculate_version_1,
   handle_entities_version_1,
+  handle_field_version_1,
   handle_fields_version_1,
   handle_simulate_version_1,
   make_app,
@@ -50,9 +51,59 @@ const DEFAULT_YEAR = 2013
 const columns_tree = JSON.parsefile(joinpath(Pkg.dir("OpenFiscaWebApi"), "columns_tree.json"))
 
 
+function to_json(entity_definition::EntityDefinition)
+  # ucfirst is used for Python API compatibility.
+  entity_json = (String => Any)["label" => ucfirst(entity_definition.label)]
+  if entity_definition.is_person
+    entity_json["isPersonsEntity"] = entity_definition.is_person
+  else
+    merge!(entity_json, [
+      "maxCardinalityByRoleKey" => entity_definition.max_persons_by_role_name,
+      "roles" => entity_definition.roles_name,
+      "labelByRoleKey" => [
+        role_name => ucfirst(label)
+        for (role_name, label) in entity_definition.label_by_role_name
+      ]
+    ])
+  end
+  return entity_json
+end
+
+function to_json(variable_definition::VariableDefinition)
+  variable_definition_json = (String => Any)[
+    "cell_type" => variable_definition.cell_type,
+    "label" => variable_definition.label,
+    "name" => variable_definition.name,
+  ]
+  if variable_definition.cerfa_field !== nothing
+    variable_definition_json["cerfa_field"] = variable_definition.cerfa_field
+  end
+  if variable_definition.cell_format !== nothing
+    variable_definition_json["cell_format"] = variable_definition.cell_format
+  end
+  if variable_definition.cell_default !== nothing
+    variable_definition_json["default"] = variable_definition.cell_default
+  end
+  if variable_definition.entity_definition !== nothing
+    variable_definition_json["entity_name"] = variable_definition.entity_definition.name
+  end
+  if variable_definition.start_date !== nothing
+    variable_definition_json["start_date"] = variable_definition.start_date  # TODO isoformat
+  end
+  if variable_definition.stop_date !== nothing
+    variable_definition_json["stop_date"] = variable_definition.stop_date  # TODO isoformat
+  end
+  if variable_definition.url !== nothing
+    variable_definition_json["url"] = variable_definition.url
+  end
+  return variable_definition_json
+end
+
+
 include("controllers/calculate.jl")
 include("controllers/simulate.jl")
 include("controllers/entities.jl")
+include("controllers/field.jl")
 include("controllers/fields.jl")
 include("midwares.jl")
 
@@ -62,6 +113,7 @@ function make_app()
   Morsel.with(app, CORS) do app
     Morsel.route(app, POST | OPTIONS, "/api/1/calculate", handle_calculate_version_1)
     Morsel.route(app, GET | OPTIONS, "/api/1/entities", handle_entities_version_1)
+    Morsel.route(app, GET | OPTIONS, "/api/1/field", handle_field_version_1)
     Morsel.route(app, GET | OPTIONS, "/api/1/fields", handle_fields_version_1)
     Morsel.route(app, POST | OPTIONS, "/api/1/simulate", handle_simulate_version_1)
   end
