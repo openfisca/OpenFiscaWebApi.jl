@@ -39,23 +39,17 @@ function handle_field_version_1(req::MeddleRequest, res::Response)
 
   variable_definition = tax_benefit_system.variable_definition_by_name[data[:variable]]
 
-# {
-#         "@type": "Float",
-#         "default": 0,
-#         "entity": "menages",
-#         "formula": {
-#             "@type": "SimpleFormula",
-#             "comments": null,
-#             "doc": "Revenu disponible - ménage\n'men'",
-#             "line_number": 103,
-#             "module": "openfisca_france.model.mesures",
-#             "source": "def function(self, simulation, period):\n    '''\n    Revenu disponible - ménage\n    'men'\n    '''\n    period = period.start.period('year').offset('first-of')\n    rev_trav_holder = simulation.compute('rev_trav', period)\n    pen_holder = simulation.compute('pen', period)\n    rev_cap_holder = simulation.compute('rev_cap', period)\n    psoc_holder = simulation.compute('psoc', period)\n    ppe_holder = simulation.compute('ppe', period)\n    impo = simulation.calculate('impo', period)\n\n    pen = self.sum_by_entity(pen_holder)\n    ppe = self.cast_from_entity_to_role(ppe_holder, role = VOUS)\n    ppe = self.sum_by_entity(ppe)\n    psoc = self.cast_from_entity_to_role(psoc_holder, role = CHEF)\n    psoc = self.sum_by_entity(psoc)\n    rev_cap = self.sum_by_entity(rev_cap_holder)\n    rev_trav = self.sum_by_entity(rev_trav_holder)\n\n    return period, rev_trav + pen + rev_cap + psoc + ppe + impo\n"
-#         },
-#         "label": "Revenu disponible du ménage",
-#         "name": "revdisp",
-#         "url": "http://fr.wikipedia.org/wiki/Revenu_disponible"
-#     }
+  json_output = to_json(variable_definition)
 
-  response_data = ["value" => to_json(variable_definition)]
+  formula = variable_definition.formula
+  if formula !== nothing
+    source = string(Base.uncompressed_ast(formula.code).args[3])
+    json_output["formula"] = [
+      "line_number" => formula.code.line,
+      "source" => source,
+    ]
+  end
+
+  response_data = ["value" => json_output]
   return handle(middleware(APIDataV1(response_data), JSONData), req, res)
 end

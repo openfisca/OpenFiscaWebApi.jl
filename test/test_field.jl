@@ -20,14 +20,33 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+const validate_res_data = struct(
+  [
+    "value" => struct(
+      [
+        "formula" => struct(
+          [
+            "line_number" => test_isa(Integer),
+            "source" => test_isa(String),
+          ],
+        ),
+        "name" => test_isa(String),
+      ],
+      default = noop,
+    ),
+  ],
+  default = noop,
+)
+
+
 facts("field controller") do
+  context("no params returns revdisp data") do
     res = handle_field_version_1(MeddleRequest(method = "GET"), Response())
     @fact res.status => 200
     @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
     data = JSON.parse(res.data)
-    @fact isa(data, Dict) => true
-    @fact haskey(data, "value") => true
-    @fact isa(data["value"], Dict) => true
-    @fact haskey(data["value"], "name") => true
-    @fact isa(data["value"]["name"], String) => true
+    value, error = Convertible(data) |> validate_res_data |> to_value_error
+    @fact error => exactly(nothing)
+    @fact data["value"]["name"] => "revdisp"
+  end
 end

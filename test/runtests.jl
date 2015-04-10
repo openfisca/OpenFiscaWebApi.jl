@@ -22,6 +22,7 @@
 
 using Base.Test
 
+using Biryani
 using FactCheck
 using HttpCommon
 using Meddle
