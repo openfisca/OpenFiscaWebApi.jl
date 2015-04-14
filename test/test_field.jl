@@ -20,26 +20,34 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-const validate_res_data = struct(
-  [
-    "value" => struct(
+facts("field controller") do
+
+  const validate_res_data = pipe(
+    test_isa(Dict),
+    struct(
       [
-        "formula" => struct(
-          [
-            "line_number" => test_isa(Integer),
-            "source" => test_isa(String),
-          ],
+        "error" => test_nothing,
+        "value" => pipe(
+          struct(
+            [
+              "formula" => struct(
+                [
+                  "line_number" => test_isa(Integer),
+                  "module" => test_isa(String),
+                  "source" => test_isa(String),
+                ],
+              ),
+              "name" => pipe(test_isa(String), require),
+            ],
+            default = noop,
+          ),
+          require,
         ),
-        "name" => test_isa(String),
       ],
       default = noop,
     ),
-  ],
-  default = noop,
-)
+  )
 
-
-facts("field controller") do
   context("no params returns revdisp data") do
     res = handle_field_version_1(MeddleRequest(method = "GET"), Response())
     @fact res.status => 200
@@ -49,4 +57,5 @@ facts("field controller") do
     @fact error => exactly(nothing)
     @fact data["value"]["name"] => "revdisp"
   end
+
 end

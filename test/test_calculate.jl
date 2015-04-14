@@ -21,13 +21,73 @@
 
 
 facts("calculate controller") do
-    context("empty body") do
-        res = handle_calculate_version_1(MeddleRequest(method = "POST"), Response())
-        @fact res.status => 400
-        @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
-        data = JSON.parse(res.data)
-        @fact isa(data, Dict) => true
-        @fact haskey(data, "error") => true
-    end
-    # TODO Add a test with a test case
+
+  const test_case = JSON.parsefile(joinpath(Pkg.dir("OpenFiscaWebApi"), "test", "data", "calculate_simulation_1.json"))
+
+  context("empty body") do
+    res = handle_calculate_version_1(MeddleRequest(method = "POST"), Response())
+    @fact res.status => 400
+    @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
+    data = JSON.parse(res.data)
+    value, error = Convertible(data) |> pipe(
+      test_isa(Dict),
+      struct(
+        [
+          "error" => require,
+        ],
+        default = noop,
+      ),
+    ) |> to_value_error
+    @fact error => exactly(nothing)
+  end
+
+  context("wrong req Content-Type") do
+    req = MeddleRequest(data = JSON.json(test_case), method = "POST")
+    res = handle_calculate_version_1(req, Response())
+    @fact res.status => 400
+    @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
+    data = JSON.parse(res.data)
+    value, error = Convertible(data) |> pipe(
+      test_isa(Dict),
+      struct(
+        [
+          "error" => pipe(
+            struct(
+              [
+                "errors" => struct(
+                  [
+                    "content_type" => require,
+                  ],
+                  default = noop,
+                )
+              ],
+              default = noop,
+            ),
+            require,
+          ),
+        ],
+        default = noop,
+      ),
+    ) |> to_value_error
+    @fact error => exactly(nothing)
+  end
+
+  context("test case") do
+    req = MeddleRequest(data = JSON.json(test_case), headers = json_headers, method = "POST")
+    res = handle_calculate_version_1(req, Response())
+    @fact res.status => 200
+    @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
+    data = JSON.parse(res.data)
+    value, error = Convertible(data) |> pipe(
+      test_isa(Dict),
+      struct(
+        [
+          "error" => test_nothing,
+          "value" => uniform_sequence(test_isa(FloatingPoint)),
+        ],
+        default = noop,
+      ),
+    ) |> to_value_error
+  end
+
 end

@@ -20,69 +20,74 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-const simulation_json_str = """
-{
-  "scenarios": [
-    {
-      "test_case": {
-        "familles": [
-          {
-            "parents": ["ind0"]
-          }
-        ],
-        "foyers_fiscaux": [
-          {
-            "declarants": ["ind0"]
-          }
-        ],
-        "individus": [
-          {
-            "id": "ind0"
-          }
-        ],
-        "menages": [
-          {
-            "personne_de_reference": "ind0"
-          }
-        ]
-      },
-      "period": "2013"
-    }
-  ]
-}
-"""
-
-
 facts("simulate controller") do
+
+  const test_case = JSON.parsefile(joinpath(Pkg.dir("OpenFiscaWebApi"), "test", "data", "simulate_simulation_1.json"))
+
   context("empty body") do
     res = handle_simulate_version_1(MeddleRequest(headers = json_headers, method = "POST"), Response())
     @fact res.status => 400
     @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
     data = JSON.parse(res.data)
-    @fact isa(data, Dict) => true
-    @fact haskey(data, "error") => true
+    value, error = Convertible(data) |> pipe(
+      test_isa(Dict),
+      struct(
+        [
+          "error" => require,
+        ],
+        default = noop,
+      ),
+    ) |> to_value_error
+    @fact error => exactly(nothing)
   end
+
   context("wrong req Content-Type") do
-    req = MeddleRequest(data = simulation_json_str, method = "POST")
+    req = MeddleRequest(data = JSON.json(test_case), method = "POST")
     res = handle_simulate_version_1(req, Response())
     @fact res.status => 400
     @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
     data = JSON.parse(res.data)
-    @fact isa(data, Dict) => true
-    @fact haskey(data, "error") => true
-    @fact isa(data["error"], Dict) => true
-    @fact haskey(data["error"], "errors") => true
-    @fact isa(data["error"]["errors"], Dict) => true
-    @fact haskey(data["error"]["errors"], "content_type") => true
+    value, error = Convertible(data) |> pipe(
+      test_isa(Dict),
+      struct(
+        [
+          "error" => pipe(
+            struct(
+              [
+                "errors" => struct(
+                  [
+                    "content_type" => require,
+                  ],
+                  default = noop,
+                )
+              ],
+              default = noop,
+            ),
+            require,
+          ),
+        ],
+        default = noop,
+      ),
+    ) |> to_value_error
+    @fact error => exactly(nothing)
   end
-  context("single individual") do
-    req = MeddleRequest(data = simulation_json_str, headers = json_headers, method = "POST")
+
+  context("test case") do
+    req = MeddleRequest(data = JSON.json(test_case), headers = json_headers, method = "POST")
     res = handle_simulate_version_1(req, Response())
     @fact res.status => 200
     @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
     data = JSON.parse(res.data)
-    @fact isa(data, Dict) => true
-    @fact haskey(data, "error") => false
-    @fact haskey(data, "value") => true
+    value, error = Convertible(data) |> pipe(
+      test_isa(Dict),
+      struct(
+        [
+          "error" => test_nothing,
+          "value" => uniform_sequence(test_isa(FloatingPoint)),
+        ],
+        default = noop,
+      ),
+    ) |> to_value_error
   end
+
 end
