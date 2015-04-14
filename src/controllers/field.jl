@@ -20,6 +20,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+function get_relative_path(absolute_path, base_path)
+  if !endswith(base_path, '/')
+    base_path = "$(base_path)/"
+  end
+  module_relative_file_path = absolute_path[length(base_path) + 1:end]
+
+end
+
+
 function handle_field_version_1(req::MeddleRequest, res::Response)
   @assert req.http_req.method == "GET"
 
@@ -44,8 +53,10 @@ function handle_field_version_1(req::MeddleRequest, res::Response)
   formula = variable_definition.formula
   if formula !== nothing
     source = string(Base.uncompressed_ast(formula.code).args[3])
+
     json_output["formula"] = [
       "line_number" => formula.code.line,
+      "module" => get_relative_path(string(formula.code.file), joinpath(Pkg.dir("OpenFiscaFrance"), "src")),
       "source" => source,
     ]
   end
