@@ -109,7 +109,7 @@ function handle_calculate_version_1(req::MeddleRequest, res::Response)
   end
 
   simulations = map(scenarios) do scenario
-    simulation = Simulation(scenario, debug = true, trace = false)
+    simulation = Simulation(scenario, debug = false, trace = false)
     for variable in data["variables"]
       calculate(simulation, variable)
     end
