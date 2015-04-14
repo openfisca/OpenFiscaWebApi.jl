@@ -85,7 +85,7 @@ function to_json(variable_definition::VariableDefinition)
     variable_definition_json["default"] = variable_definition.cell_default
   end
   if variable_definition.entity_definition !== nothing
-    variable_definition_json["entity_name"] = variable_definition.entity_definition.name
+    variable_definition_json["entity"] = variable_definition.entity_definition.name
   end
   if variable_definition.start_date !== nothing
     variable_definition_json["start_date"] = variable_definition.start_date  # TODO isoformat
