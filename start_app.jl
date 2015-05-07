@@ -23,7 +23,17 @@
 import OpenFiscaWebApi
 
 
-const PORT = 2500
+function main()
+  if isempty(ARGS)
+    println("usage: start_app <config_file>")
+    return
+  end
+
+  config_file_path = first(ARGS)
+  require(config_file_path)
+
+  OpenFiscaWebApi.start(SERVER_PORT)
+end
 
 
-OpenFiscaWebApi.start(PORT)
+main()
