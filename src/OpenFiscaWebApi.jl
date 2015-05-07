@@ -43,6 +43,7 @@ using Meddle
 import Morsel
 
 using OpenFiscaCore
+using OpenFiscaFrance
 
 
 const columns_tree = JSON.parsefile(joinpath(Pkg.dir("OpenFiscaWebApi"), "columns_tree.json"))
