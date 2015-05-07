@@ -72,6 +72,36 @@ facts("calculate controller") do
     @fact error => exactly(nothing)
   end
 
+  context("invalid body") do
+    res = handle_calculate_version_1(MeddleRequest(data = "XXX", headers = json_headers, method = "POST"), Response())
+    @fact res.status => 400
+    @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
+    data = JSON.parse(res.data)
+    value, error = Convertible(data) |> pipe(
+      test_isa(Dict),
+      struct(
+        [
+          "error" => pipe(
+            struct(
+              [
+                "errors" => struct(
+                  [
+                    "req_data" => require,
+                  ],
+                  default = noop,
+                )
+              ],
+              default = noop,
+            ),
+            require,
+          ),
+        ],
+        default = noop,
+      ),
+    ) |> to_value_error
+    @fact error => exactly(nothing)
+  end
+
   context("test case") do
     req = MeddleRequest(data = JSON.json(test_case), headers = json_headers, method = "POST")
     res = handle_calculate_version_1(req, Response())
@@ -83,11 +113,61 @@ facts("calculate controller") do
       struct(
         [
           "error" => test_nothing,
-          "value" => uniform_sequence(test_isa(FloatingPoint)),
+          "value" => pipe(
+            test_isa(Array),
+            uniform_sequence(
+              pipe(
+                test_isa(Dict),
+                require,
+              ),
+            ),
+            require,
+          ),
         ],
         default = noop,
       ),
     ) |> to_value_error
+    @fact error => exactly(nothing)
+  end
+
+  context("test case with trace") do
+    test_case_with_trace = deepcopy(test_case)
+    test_case_with_trace["trace"] = true
+    req = MeddleRequest(data = JSON.json(test_case_with_trace), headers = json_headers, method = "POST")
+    res = handle_calculate_version_1(req, Response())
+    @fact res.status => 200
+    @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
+    data = JSON.parse(res.data)
+    value, error = Convertible(data) |> pipe(
+      test_isa(Dict),
+      struct(
+        [
+          "error" => test_nothing,
+          "tracebacks" => pipe(
+            test_isa(Array),
+            uniform_sequence(
+              pipe(
+                test_isa(Dict),
+                require,
+              ),
+            ),
+            require,
+          ),
+          "value" => pipe(
+            test_isa(Array),
+            uniform_sequence(
+              pipe(
+                test_isa(Dict),
+                require,
+              ),
+            ),
+            require,
+          ),
+        ],
+        default = noop,
+      ),
+    ) |> to_value_error
+    @fact error => exactly(nothing)
   end
 
 end

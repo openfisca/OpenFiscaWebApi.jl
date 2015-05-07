@@ -72,6 +72,36 @@ facts("simulate controller") do
     @fact error => exactly(nothing)
   end
 
+  context("invalid body") do
+    res = handle_simulate_version_1(MeddleRequest(data = "XXX", headers = json_headers, method = "POST"), Response())
+    @fact res.status => 400
+    @fact res.headers["Content-Type"] => "application/json; charset=utf-8"
+    data = JSON.parse(res.data)
+    value, error = Convertible(data) |> pipe(
+      test_isa(Dict),
+      struct(
+        [
+          "error" => pipe(
+            struct(
+              [
+                "errors" => struct(
+                  [
+                    "req_data" => require,
+                  ],
+                  default = noop,
+                )
+              ],
+              default = noop,
+            ),
+            require,
+          ),
+        ],
+        default = noop,
+      ),
+    ) |> to_value_error
+    @fact error => exactly(nothing)
+  end
+
   context("test case") do
     req = MeddleRequest(data = JSON.json(test_case), headers = json_headers, method = "POST")
     res = handle_simulate_version_1(req, Response())
@@ -83,7 +113,15 @@ facts("simulate controller") do
       struct(
         [
           "error" => test_nothing,
-          "value" => uniform_sequence(test_isa(FloatingPoint)),
+          "value" => pipe(
+            test_isa(Dict),
+            require,
+          ),
+        ],
+        default = noop,
+      ),
+    ) |> to_value_error
+    @fact error => exactly(nothing)
         ],
         default = noop,
       ),
