@@ -23,7 +23,7 @@
 import OpenFiscaWebApi
 
 
-const PORT = 2100
+const PORT = 2500
 
 
 OpenFiscaWebApi.start(PORT)
