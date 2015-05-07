@@ -47,6 +47,7 @@ using OpenFiscaFrance
 
 
 const columns_tree = JSON.parsefile(joinpath(Pkg.dir("OpenFiscaWebApi"), "columns_tree.json"))
+const default_year = 2013
 
 
 function to_json(entity_definition::EntityDefinition)

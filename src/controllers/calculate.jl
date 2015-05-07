@@ -64,7 +64,7 @@ function handle_calculate_version_1(req::MeddleRequest, res::Response)
   end
 
   default_scenario_json = [
-    "period" => YearPeriod(DEFAULT_YEAR),
+    "period" => YearPeriod(default_year),
     "test_case" => [
       "individus" => [(String => Any)[]],
     ],
